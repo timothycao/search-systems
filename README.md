@@ -15,6 +15,24 @@ source .venv/bin/activate   # on Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
+### 3. Organize dataset files
+
+```plaintext
+data/
+├── collection/
+│   ├── collection.tsv
+│   ├── msmarco_passages_subset.tsv
+│   └── msmarco_passage_embeddings_subset.h5
+├── queries/
+│   ├── queries.dev.tsv
+│   ├── queries.eval.tsv
+│   └── msmarco_dev_eval_embeddings.h5
+└── qrels/
+    ├── qrels.dev.tsv
+    ├── qrels.eval.one.tsv
+    └── qrels.eval.two.tsv
+```
+
 ## Usage
 
 ### Build
@@ -26,5 +44,8 @@ python -m scripts.build --system <bm25 | hnsw | rerank>
 ### Run
 
 ```bash
-python -m scripts.run --system <bm25 | hnsw | rerank>
+python -m scripts.run \
+    --system <bm25 | hnsw | rerank> \
+    --query  <dev | eval1 | eval2> \
+    [--save <filename>] # optional
 ```
