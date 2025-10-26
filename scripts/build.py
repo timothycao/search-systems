@@ -1,15 +1,21 @@
 """
 Build search system indices.
 Usage:
-    python -m scripts.build --system <bm25, hnsw, rerank>
+    python -m scripts.build --system <bm25 | hnsw | rerank>
 """
 
 from argparse import ArgumentParser
-from typing import Dict
+from typing import Dict, Type
 
 from systems.bm25 import BM25System
 from systems.hnsw import HNSWSystem
 from systems.rerank import ReRankSystem
+
+SYSTEMS: Dict[str, Type] = {
+    "bm25": BM25System,
+    "hnsw": HNSWSystem,
+    "rerank": ReRankSystem,
+}
 
 def main() -> None:
     parser = ArgumentParser(description="Build search system indices.")
@@ -17,18 +23,12 @@ def main() -> None:
         "--system",
         type=str,
         required=True,
-        choices=["bm25", "hnsw", "rerank"],
+        choices=list(SYSTEMS.keys()),
         help="Which system to build."
     )
     args = parser.parse_args()
 
-    systems: Dict[str, object] = {
-        "bm25": BM25System,
-        "hnsw": HNSWSystem,
-        "rerank": ReRankSystem,
-    }
-
-    system_cls = systems[args.system]
+    system_cls = SYSTEMS[args.system]
     system = system_cls()
     
     system.build()

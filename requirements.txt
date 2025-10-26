@@ -1,0 +1,2 @@
+search_system @ git+https://github.com/timothycao/search-system.git
+tqdm==4.67.1

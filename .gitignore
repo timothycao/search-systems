@@ -7,5 +7,7 @@ __pycache__
 # System files
 .DS_Store
 
-# Project data
+# Project data and outputs
 data/
+artifacts/
+runs/
