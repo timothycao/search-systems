@@ -46,6 +46,15 @@ python -m scripts.build --system <bm25 | hnsw | rerank>
 ```bash
 python -m scripts.run \
     --system <bm25 | hnsw | rerank> \
-    --query  <dev | eval1 | eval2> \
-    [--save <filename>] # optional
+    --qrels <dev | eval1 | eval2> \
+    --save <filename>
+```
+
+### Evaluate
+
+```bash
+python -m scripts.evaluate \
+    --system <bm25 | hnsw | rerank> \
+    --qrels <dev | eval1 | eval2> \
+    --run <filename>
 ```

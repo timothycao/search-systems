@@ -1,2 +1,4 @@
+numpy==2.3.4
+pytrec_eval==0.5
 search_system @ git+https://github.com/timothycao/search-system.git
 tqdm==4.67.1
