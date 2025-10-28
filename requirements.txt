@@ -1,4 +1,7 @@
+faiss-cpu==1.12.0
+h5py==3.15.1
 numpy==2.3.4
+packaging==25.0
 pytrec_eval==0.5
 search_system @ git+https://github.com/timothycao/search-system.git
 tqdm==4.67.1

@@ -3,7 +3,10 @@ Utility functions for loading MSMARCO input files (queries, qrels, runs, etc.).
 """
 
 from collections import defaultdict
-from typing import Dict
+from typing import Dict, Tuple
+
+import h5py
+import numpy as np
 
 def load_queries(file_path: str) -> Dict[str, str]:
     """
@@ -54,3 +57,21 @@ def load_run(file_path: str) -> Dict[str, Dict[str, float]]:
             run[query_id][doc_id] = float(score)
 
     return dict(run)
+
+def load_h5_embeddings(file_path: str, id_key: str = 'id', embedding_key: str = 'embedding') -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Load IDs and embeddings from an HDF5 file.
+
+    Args:
+    - id_key: Dataset name for the IDs inside the HDF5 file.
+    - embedding_key: Dataset name for the embeddings inside the HDF5 file.
+
+    Returns:
+    - ids: Numpy array of IDs (as strings).
+    - embeddings: Numpy array of embeddings (as float32).
+    """
+    with h5py.File(file_path, 'r') as file:
+        ids: np.ndarray = np.array(file[id_key]).astype(str)
+        embeddings: np.ndarray = np.array(file[embedding_key]).astype(np.float32)  
+
+    return ids, embeddings
