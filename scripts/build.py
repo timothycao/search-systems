@@ -9,12 +9,14 @@ from typing import Dict, Type
 
 from systems.bm25 import BM25System
 from systems.hnsw import HNSWSystem
-from systems.rerank import ReRankSystem
+from systems.rerank_rrf import RecipricalRankFusion
+from systems.rerank_linear import LinearScoreFusion
 
 SYSTEMS: Dict[str, Type] = {
     "bm25": BM25System,
     "hnsw": HNSWSystem,
-    "rerank": ReRankSystem,
+    "rerank-rrf": RecipricalRankFusion,
+    "rerank-lsf": LinearScoreFusion,
 }
 
 def main() -> None:

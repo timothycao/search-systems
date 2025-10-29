@@ -17,7 +17,7 @@ from utils.loaders import load_qrels, load_run
 from utils.config import RUNS_DIR, QRELS_DEV_PATH, QRELS_EVAL1_PATH, QRELS_EVAL2_PATH
 
 # Available systems
-SYSTEMS: List[str] = ["bm25", "hnsw", "rerank"]
+SYSTEMS: List[str] = ["bm25", "hnsw", "rerank-rrf", "rerank-lsf"]
 
 # Available qrels
 QRELS: Dict[str, str] = {

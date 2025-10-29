@@ -20,3 +20,9 @@ QRELS_DIR: str = f"{DATA_DIR}/qrels"
 QRELS_DEV_PATH: str = f"{QRELS_DIR}/qrels.dev.tsv"
 QRELS_EVAL1_PATH: str = f"{QRELS_DIR}/qrels.eval.one.tsv"
 QRELS_EVAL2_PATH: str = f"{QRELS_DIR}/qrels.eval.two.tsv"
+
+# Results Runs
+RUNS_BM25_DIR: str = f"{RUNS_DIR}/bm25"
+RUNS_HNSW_DIR: str = f"{RUNS_DIR}/hnsw"
+RUNS_RERANK_RRF_DIR: str = f"{RUNS_DIR}/rerank-rrf"
+RUNS_RERANK_LCF_DIR: str = f"{RUNS_DIR}/rerank-lsf"

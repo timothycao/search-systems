@@ -58,6 +58,22 @@ def load_run(file_path: str) -> Dict[str, Dict[str, float]]:
 
     return dict(run)
 
+# TODO: Refactor needed components to use load_run and avoid duplication
+
+def load_ranked_run(file_path: str) -> Dict[str, Dict[str, int]]:
+    """
+    Load run file into {query_id: {doc_id: rank}}.
+    """
+    run: Dict[str, Dict[str, int]] = defaultdict(dict)
+    with open(file_path, "r", encoding="utf-8") as file:
+        for line in file:
+            if not line.strip(): continue
+            
+            query_id, doc_id, rank, _ = line.strip().split("\t")
+            run[query_id][doc_id] = int(rank)
+
+    return dict(run)
+
 def load_h5_embeddings(file_path: str, id_key: str = 'id', embedding_key: str = 'embedding') -> Tuple[np.ndarray, np.ndarray]:
     """
     Load IDs and embeddings from an HDF5 file.

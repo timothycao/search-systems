@@ -49,9 +49,9 @@ class HNSWSystem(SearchSystem):
         
         # Initialize HNSW index
         index = faiss.IndexHNSWFlat(
-            d=doc_embeddings.shape[1],
-            M=M,
-            metric=faiss.METRIC_INNER_PRODUCT
+            doc_embeddings.shape[1],
+            M,
+            faiss.METRIC_INNER_PRODUCT
         )
         
         # Set build-time beam width
