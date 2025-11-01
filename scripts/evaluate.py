@@ -2,7 +2,7 @@
 Evaluate search system results on MS MARCO datasets using pytrec_eval.
 Usage:
     python -m scripts.evaluate \
-        --system <bm25 | hnsw | rerank> \
+        --system <bm25 | hnsw | rrf | lsf> \
         --qrels <dev | eval1 | eval2> \
         --run <filename>
 """
@@ -13,11 +13,11 @@ from typing import Dict, List
 
 from pytrec_eval import RelevanceEvaluator
 
-from utils.loaders import load_qrels, load_run
+from utils.io import load_qrels, load_run
 from utils.config import RUNS_DIR, QRELS_DEV_PATH, QRELS_EVAL1_PATH, QRELS_EVAL2_PATH
 
 # Available systems
-SYSTEMS: List[str] = ["bm25", "hnsw", "rerank-rrf", "rerank-lsf"]
+SYSTEMS: List[str] = ["bm25", "hnsw", "rrf", "lsf"]
 
 # Available qrels
 QRELS: Dict[str, str] = {

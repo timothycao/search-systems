@@ -39,7 +39,7 @@ data/
 
 ```bash
 python -m scripts.build \
-    --system <bm25 | hnsw | rerank> \
+    --system <bm25 | hnsw> \
     [--track <time | memory>]
 ```
 
@@ -47,9 +47,10 @@ python -m scripts.build \
 
 ```bash
 python -m scripts.run \
-    --system <bm25 | hnsw | rerank> \
-    --qrels <dev | eval1 | eval2> \
+    --system <bm25 | hnsw | rrf | lsf> \
     --save <filename> \
+    [--qrels <dev | eval1 | eval2>] \
+    [--targets <run1 run2>] \
     [--track <time | memory>]
 ```
 
@@ -57,7 +58,7 @@ python -m scripts.run \
 
 ```bash
 python -m scripts.evaluate \
-    --system <bm25 | hnsw | rerank> \
+    --system <bm25 | hnsw | rrf | lsf> \
     --qrels <dev | eval1 | eval2> \
     --run <filename>
 ```

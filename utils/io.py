@@ -1,17 +1,14 @@
 """
-Utility functions for loading MSMARCO input files (queries, qrels, runs, etc.).
+I/O utilities for loading and saving MS MARCO dataset files and system runs.
+Includes helpers for reading queries, qrels, and runs, and writing ranked outputs.
 """
 
+import os
 from collections import defaultdict
-from typing import Dict, Tuple
-
-import h5py
-import numpy as np
+from typing import Dict, List, Tuple
 
 def load_queries(file_path: str) -> Dict[str, str]:
-    """
-    Load queries file into {query_id: query_text}.
-    """
+    """Load queries file into {query_id: query_text}."""
     queries: Dict[str, str] = {}
     with open(file_path, "r", encoding="utf-8") as file:
         for line in file:
@@ -45,9 +42,7 @@ def load_qrels(file_path: str) -> Dict[str, Dict[str, int]]:
     return dict(qrels)
 
 def load_run(file_path: str) -> Dict[str, Dict[str, float]]:
-    """
-    Load run file into {query_id: {doc_id: score}}.
-    """
+    """Load run file into {query_id: {doc_id: score}}."""
     run: Dict[str, Dict[str, float]] = defaultdict(dict)
     with open(file_path, "r", encoding="utf-8") as file:
         for line in file:
@@ -58,36 +53,12 @@ def load_run(file_path: str) -> Dict[str, Dict[str, float]]:
 
     return dict(run)
 
-# TODO: Refactor needed components to use load_run and avoid duplication
+def save_run(results: List[Tuple[str, List[Tuple[str, float]]]], output_path: str) -> None:
+    """Save ranked retrieval results in plain tab-separated format."""
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-def load_ranked_run(file_path: str) -> Dict[str, Dict[str, int]]:
-    """
-    Load run file into {query_id: {doc_id: rank}}.
-    """
-    run: Dict[str, Dict[str, int]] = defaultdict(dict)
-    with open(file_path, "r", encoding="utf-8") as file:
-        for line in file:
-            if not line.strip(): continue
-            
-            query_id, doc_id, rank, _ = line.strip().split("\t")
-            run[query_id][doc_id] = int(rank)
-
-    return dict(run)
-
-def load_h5_embeddings(file_path: str, id_key: str = 'id', embedding_key: str = 'embedding') -> Tuple[np.ndarray, np.ndarray]:
-    """
-    Load IDs and embeddings from an HDF5 file.
-
-    Args:
-    - id_key: Dataset name for the IDs inside the HDF5 file.
-    - embedding_key: Dataset name for the embeddings inside the HDF5 file.
-
-    Returns:
-    - ids: Numpy array of IDs (as strings).
-    - embeddings: Numpy array of embeddings (as float32).
-    """
-    with h5py.File(file_path, 'r') as file:
-        ids: np.ndarray = np.array(file[id_key]).astype(str)
-        embeddings: np.ndarray = np.array(file[embedding_key]).astype(np.float32)  
-
-    return ids, embeddings
+    with open(output_path, "w", encoding="utf-8") as output_file:
+        for query_id, ranked_docs in results:
+            for rank, (doc_id, score) in enumerate(ranked_docs, start=1):
+                # Columns: query_id, doc_id, rank, score
+                output_file.write(f"{query_id}\t{doc_id}\t{rank}\t{score:.6f}\n")
