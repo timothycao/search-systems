@@ -4,8 +4,10 @@ Usage:
     python -m scripts.run \
         --system <bm25 | hnsw | rerank> \
         --qrels <dev | eval1 | eval2> \
-        --save <filename>
+        --save <filename> \
+        [--track <time | memory>]
 """
+
 import os
 from argparse import ArgumentParser
 from typing import Dict, List, Tuple, Type
@@ -15,6 +17,7 @@ from systems.hnsw import HNSWSystem
 from systems.rerank_rrf import RecipricalRankFusion
 from systems.rerank_linear import LinearScoreFusion
 from utils.loaders import load_queries, load_qrels
+from utils.performance import track_performance
 from utils.config import QUERIES_DEV_PATH, QUERIES_EVAL_PATH, QRELS_DEV_PATH, QRELS_EVAL1_PATH, QRELS_EVAL2_PATH, RUNS_BM25_DIR, RUNS_HNSW_DIR
 
 # Available systems
@@ -39,6 +42,7 @@ def main() -> None:
     parser.add_argument("--qrels", choices=list(DATASETS.keys()))
     parser.add_argument("--targets", nargs="+")
     parser.add_argument("--save", required=True)
+    parser.add_argument("--track", choices=["time", "memory"], required=False)
     args = parser.parse_args()
 
     # Initialize system
@@ -62,8 +66,8 @@ def main() -> None:
             if query_id in queries_dataset
         ]
 
-        # Run retrieval
-        results: List = system.search(queries, top_k=100)
+        # Run retrieval (optionally track time or memory)
+        results: List = track_performance(system.search, queries, top_k=100, track=args.track)
 
         # Save results
         if args.save: system.save_run(results, args.save)
@@ -79,10 +83,12 @@ def main() -> None:
         print(f"[run.py] Using BM25 run: {bm25_path}")
         print(f"[run.py] Using HNSW run: {hnsw_path}")
         # Run re-ranking
-        results: List = system.search(
+        results: List = track_performance(
+            system.search,
             bm25_filename=args.targets[0] if args.targets else "bm25_eval1.tsv",
             hnsw_filename=args.targets[1] if args.targets else "hnsw_eval1.tsv",
             top_k=100,
+            track=args.track
         )
 
         # Save results

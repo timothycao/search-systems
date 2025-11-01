@@ -22,11 +22,11 @@ data/
 ├── collection/
 │   ├── collection.tsv
 │   ├── msmarco_passages_subset.tsv
-│   └── msmarco_passage_embeddings_subset.h5
+│   └── msmarco_passages_embeddings_subset.h5
 ├── queries/
 │   ├── queries.dev.tsv
 │   ├── queries.eval.tsv
-│   └── msmarco_dev_eval_embeddings.h5
+│   └── msmarco_queries_dev_eval_embeddings.h5
 └── qrels/
     ├── qrels.dev.tsv
     ├── qrels.eval.one.tsv
@@ -38,7 +38,9 @@ data/
 ### Build
 
 ```bash
-python -m scripts.build --system <bm25 | hnsw | rerank>
+python -m scripts.build \
+    --system <bm25 | hnsw | rerank> \
+    [--track <time | memory>]
 ```
 
 ### Run
@@ -47,7 +49,8 @@ python -m scripts.build --system <bm25 | hnsw | rerank>
 python -m scripts.run \
     --system <bm25 | hnsw | rerank> \
     --qrels <dev | eval1 | eval2> \
-    --save <filename>
+    --save <filename> \
+    [--track <time | memory>]
 ```
 
 ### Evaluate
