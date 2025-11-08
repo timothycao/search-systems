@@ -1,0 +1,32 @@
+===================== OVERALL PERFORMANCE =====================
+
+MRR@10      : 0.3798
+Recall@100  : 0.7585
+MAP         : 0.3738
+
+Metrics used: MRR@10, Recall@100, MAP
+
+===================== QUERY LENGTH STATISTICS =====================
+
+Total Queries: 1000
+Short Queries (1–3 tokens):  139
+Medium Queries (4–6 tokens): 518
+Long Queries (7+ tokens):    343
+
+================= PERFORMANCE BY QUERY LENGTH =================
+
+
+--- SHORT QUERIES ---
+MRR@10      : 0.4652
+Recall@100  : 0.8070
+MAP         : 0.4614
+
+--- MEDIUM QUERIES ---
+MRR@10      : 0.3913
+Recall@100  : 0.7654
+MAP         : 0.3829
+
+--- LONG QUERIES ---
+MRR@10      : 0.3279
+Recall@100  : 0.7284
+MAP         : 0.3245

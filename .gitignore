@@ -10,4 +10,5 @@ __pycache__
 # Project data and outputs
 data/
 artifacts/
-runs/
+#runs/
+#results/

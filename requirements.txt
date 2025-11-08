@@ -5,3 +5,6 @@ packaging==25.0
 pytrec_eval==0.5
 search_system @ git+https://github.com/timothycao/search-system.git
 tqdm==4.67.1
+sentence-transformers>=2.7.0
+torch>=2.1.0
+transformers>=4.38.0

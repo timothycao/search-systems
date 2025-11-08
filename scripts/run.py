@@ -1,18 +1,40 @@
 """
 Run retrieval or rerank systems on MS MARCO queries.
 Usage:
-    python -m scripts.run \
-        --system <bm25 | hnsw | rrf | lsf> \
-        --save <filename> \
-        [--qrels <dev | eval1 | eval2>] \
-        [--targets <run1 run2>] \
-        [--track <time | memory>]
-Example:
-    # Retrieval
-    python -m scripts.run --system bm25 --qrels eval1 --save eval1.txt
+    Retrieval:
+        python -m scripts.run \
+            --system bm25 \
+            --qrels <dev | eval1 | eval2> \
+            --save <output_run_file> \
+            [--track <time | memory>]
 
-    # Rerank (fusion)
-    python -m scripts.run --system rrf --targets eval1.txt eval1.txt --save eval1.txt
+
+        python -m scripts.run \
+            --system hnsw \
+            --qrels <dev | eval1 | eval2> \
+            --save <output_run_file>
+            [--track <time | memory>]
+
+    Fusion-based reranking (RRF/LSF):
+        python -m scripts.run \
+            --system rrf \
+            --targets <bm25_run> <hnsw_run> \
+            --save <output_run_file>
+            [--track <time | memory>]
+
+        python -m scripts.run \
+            --system lsf \
+            --targets <bm25_run> <hnsw_run> \
+            --save <output_run_file>
+            [--track <time | memory>]
+
+    Bi-encoder cascading reranking:
+        python -m scripts.run \
+            --system biencoder \
+            --qrels <dev | eval1 | eval2> \
+            --targets <retrieval_or_fusion_run> \
+            --save <output_run_file>
+            [--track <time | memory>]
 """
 
 import os
@@ -23,6 +45,7 @@ from systems.retrieval.sparse.bm25 import BM25System
 from systems.retrieval.dense.hnsw import HNSWSystem
 from systems.rerank.fusion.reciprocal import ReciprocalFusionSystem
 from systems.rerank.fusion.linear import LinearFusionSystem
+from systems.rerank.neural.biencoder import BiEncoderSystem
 from utils.io import load_queries, load_qrels, save_run
 from utils.performance import track_performance
 from utils.config import (
@@ -47,6 +70,7 @@ SYSTEM_CONFIG: Dict[str, Tuple[Type, Tuple[str, ...]]] = {
     # Rerank systems
     "rrf": (ReciprocalFusionSystem, ()),
     "lsf": (LinearFusionSystem, ()),
+    "biencoder": (BiEncoderSystem, ()),
 }
 
 # Dataset registry
@@ -112,6 +136,38 @@ def main() -> None:
             {"bm25": bm25_path, "hnsw": hnsw_path},
             top_k=100,
             track=args.track
+        )
+
+    elif args.system in ["biencoder"]:
+        if not args.targets or len(args.targets) != 1:
+            raise ValueError("--targets flag with one BM25/HNSW/LSF/RRF run file is required for biencoder rerank system.")
+
+        # Resolve which system the run came from
+        target_file = args.targets[0]
+        if "bm25" in target_file:
+            run_path = os.path.join(RUNS_DIR, "bm25", target_file)
+        elif "hnsw" in target_file:
+            run_path = os.path.join(RUNS_DIR, "hnsw", target_file)
+        elif "rrf" in target_file:
+            run_path = os.path.join(RUNS_DIR, "rrf", target_file)
+        elif "lsf" in target_file:
+            run_path = os.path.join(RUNS_DIR, "lsf", target_file)
+        else:
+            raise ValueError("The target run file must be from bm25, hnsw, rrf, or lsf.")
+
+        if not args.qrels:
+            raise ValueError("--qrels flag is required for biencoder to choose dev/eval1/eval2 queries.")
+
+        dataset = DATASETS[args.qrels]
+        queries_path = dataset["queries"]   
+
+        # Run bi-encoder reranking
+        results: List = track_performance(
+            system.rerank,
+            [run_path],
+            top_k=100,
+            track=args.track,
+            queries_path=queries_path,      
         )
 
     # Save results

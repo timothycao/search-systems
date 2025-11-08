@@ -53,6 +53,24 @@ def load_run(file_path: str) -> Dict[str, Dict[str, float]]:
 
     return dict(run)
 
+def load_passages_from_subset(dataset_path: str, subset_path: str) -> Dict[str, str]:
+    """
+    Load passage texts for a subset of passage IDs.
+    Uses the subset file to filter the main dataset.
+    """
+    # Load allowed PIDs
+    with open(subset_path, "r", encoding="utf-8") as subset_file:
+        subset_pids = {line.strip() for line in subset_file if line.strip()}
+
+    passages: Dict[str, str] = {}
+    with open(dataset_path, "r", encoding="utf-8") as dataset_file:
+        for line in dataset_file:
+            pid, text = line.strip().split("\t", 1)
+            if pid in subset_pids:
+                passages[pid] = text
+
+    return passages
+
 def save_run(results: List[Tuple[str, List[Tuple[str, float]]]], output_path: str) -> None:
     """Save ranked retrieval results in plain tab-separated format."""
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
