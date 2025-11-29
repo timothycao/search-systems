@@ -6,7 +6,8 @@ RUNS_DIR: str = "runs"              # evaluation outputs
 # Collection (documents/passages)
 COLLECTION_DIR: str = f"{DATA_DIR}/collection"
 DATASET_PATH: str = f"{COLLECTION_DIR}/collection.tsv"
-SUBSET_PATH: str = f"{COLLECTION_DIR}/msmarco_passages_subset.tsv"
+SUBSET_PATH = None # None builds index over full collection
+#SUBSET_PATH: str = f"{COLLECTION_DIR}/msmarco_passages_subset.tsv"
 SUBSET_EMBEDDINGS_PATH: str = f"{COLLECTION_DIR}/msmarco_passages_embeddings_subset.h5"
 
 # Queries
