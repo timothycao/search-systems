@@ -25,7 +25,8 @@ os.environ["MKL_NUM_THREADS"] = "1"
 class BiEncoderSystem(RerankSystem):
     """Semantic reranking using a BERT-based bi-encoder model."""
 
-    def __init__(self, model_name: str = "sentence-transformers/msmarco-distilbert-base-v4"):
+    # cosine model: "sentence-transformers/msmarco-distilbert-base-v4"
+    def __init__(self, model_name: str = "sentence-transformers/msmarco-bert-base-dot-v5"):
         super().__init__("BiEncoder")
         self.model_name = model_name
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -91,7 +92,13 @@ class BiEncoderSystem(RerankSystem):
             )
 
             # Compute cosine similarities
-            sims = util.cos_sim(query_emb, doc_embs).squeeze(0).cpu().tolist()
+            #query_emb = torch.nn.functional.normalize(query_emb, p=2, dim=0)
+            #doc_embs = torch.nn.functional.normalize(doc_embs, p=2, dim=1)
+            #sims = util.cos_sim(query_emb, doc_embs).squeeze(0).cpu().tolist()
+
+            # Compute dot-product similarities
+            sims = (query_emb @ doc_embs.T).squeeze(0).cpu().tolist()
+
             ranked_docs = sorted(zip([pid for pid, _ in valid_pairs], sims), key=lambda x: x[1], reverse=True)
             results.append((qid, ranked_docs))
 
