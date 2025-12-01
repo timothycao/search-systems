@@ -26,10 +26,6 @@ from systems.tiering.tiering import (
     save_scores,
     save_dataset,
     load_features,
-    load_dataset,
-    train_xgboost_model,
-    select_threshold,
-    evaluate_at_threshold,
 )
 from utils.config import ARTIFACTS_DIR, QUERIES_DIR
 
@@ -157,89 +153,6 @@ def parse_args() -> argparse.Namespace:
         help="Output path for validation split pickle.",
     )
 
-    # train model
-    train_parser = subparsers.add_parser(
-        "train", help="Train tiering model and select threshold."
-    )
-    train_parser.add_argument(
-        "--train",
-        default=os.path.join(ARTIFACTS_DIR, "tiering", "train.pkl"),
-        help="Pickled train split (from dataset command).",
-    )
-    train_parser.add_argument(
-        "--val",
-        default=os.path.join(ARTIFACTS_DIR, "tiering", "val.pkl"),
-        help="Pickled validation split (from dataset command).",
-    )
-    train_parser.add_argument(
-        "--model-output",
-        default=os.path.join(ARTIFACTS_DIR, "tiering", "model.json"),
-        help="Path to save trained model.",
-    )
-    train_parser.add_argument(
-        "--metrics-output",
-        default=os.path.join(ARTIFACTS_DIR, "tiering", "metrics.json"),
-        help="Path to save training/validation metrics.",
-    )
-    train_parser.add_argument(
-        "--threshold-output",
-        default=os.path.join(ARTIFACTS_DIR, "tiering", "threshold.json"),
-        help="Path to save selected threshold and target ratio.",
-    )
-    train_parser.add_argument(
-        "--target-ratio",
-        type=float,
-        default=0.4,
-        help="Target Tier-1 proportion for threshold selection.",
-    )
-    train_parser.add_argument(
-        "--num-rounds",
-        type=int,
-        default=500,
-        help="Maximum boosting rounds.",
-    )
-    train_parser.add_argument(
-        "--early-stopping",
-        type=int,
-        default=50,
-        help="Early stopping rounds.",
-    )
-    train_parser.add_argument(
-        "--learning-rate",
-        type=float,
-        default=0.05,
-        help="Learning rate (eta).",
-    )
-    train_parser.add_argument(
-        "--max-depth",
-        type=int,
-        default=6,
-        help="Max tree depth.",
-    )
-    train_parser.add_argument(
-        "--subsample",
-        type=float,
-        default=0.8,
-        help="Row subsample ratio.",
-    )
-    train_parser.add_argument(
-        "--colsample-bytree",
-        type=float,
-        default=0.8,
-        help="Column subsample ratio.",
-    )
-    train_parser.add_argument(
-        "--seed",
-        type=int,
-        default=42,
-        help="Random seed.",
-    )
-    train_parser.add_argument(
-        "--use-gpu",
-        action="store_true",
-        help="Use GPU histogram algorithm (requires GPU-capable XGBoost).",
-    )
-
     return parser.parse_args()
 
 
@@ -291,64 +204,6 @@ def main() -> None:
         print(
             f"Saved train ({len(train_split['y'])}) to {args.train_output} and "
             f"val ({len(val_split['y'])}) to {args.val_output}"
-        )
-    elif args.command == "train":
-        train_ds = load_dataset(args.train)
-        val_ds = load_dataset(args.val)
-        model, metrics = train_xgboost_model(
-            train_ds,
-            val_ds,
-            num_rounds=args.num_rounds,
-            early_stopping_rounds=args.early_stopping,
-            learning_rate=args.learning_rate,
-            max_depth=args.max_depth,
-            subsample=args.subsample,
-            colsample_bytree=args.colsample_bytree,
-            use_gpu=args.use_gpu,
-            seed=args.seed,
-        )
-        if model is None:
-            raise RuntimeError(f"Training failed: {metrics.get('error', 'unknown error')}")
-
-        model.save_model(args.model_output)
-
-        # Validation probabilities
-        import xgboost as xgb  # ensure available here
-        feature_names = val_ds.get("feature_names", None)
-        dval = xgb.DMatrix(
-            np.array(val_ds["X"], dtype=np.float32),
-            label=np.array(val_ds["y"], dtype=np.float32),
-            feature_names=feature_names if feature_names else None,
-        )
-        val_probs = model.predict(dval, iteration_range=(0, model.best_iteration + 1))
-
-        threshold = select_threshold(list(val_probs), target_ratio=args.target_ratio)
-        pr_metrics = evaluate_at_threshold(list(val_probs), val_ds["y"], threshold)
-
-        metrics_out = {
-            "training": metrics,
-            "threshold": threshold,
-            "target_ratio": args.target_ratio,
-            "val_precision": pr_metrics["precision"],
-            "val_recall": pr_metrics["recall"],
-            "val_pred_ratio": pr_metrics["pred_ratio"],
-        }
-
-        metrics_dir = os.path.dirname(args.metrics_output)
-        if metrics_dir:
-            os.makedirs(metrics_dir, exist_ok=True)
-        with open(args.metrics_output, "w", encoding="utf-8") as f:
-            json.dump(metrics_out, f, indent=2)
-
-        thr_dir = os.path.dirname(args.threshold_output)
-        if thr_dir:
-            os.makedirs(thr_dir, exist_ok=True)
-        with open(args.threshold_output, "w", encoding="utf-8") as f:
-            json.dump({"threshold": threshold, "target_ratio": args.target_ratio}, f, indent=2)
-
-        print(
-            f"Saved model to {args.model_output}; metrics to {args.metrics_output}; "
-            f"threshold={threshold:.4f} (target_ratio={args.target_ratio}, val_pred_ratio={pr_metrics['pred_ratio']:.4f})"
         )
     else:
         raise ValueError(f"Unknown command {args.command}")

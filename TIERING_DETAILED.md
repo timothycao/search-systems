@@ -80,7 +80,7 @@ python -m scripts.tiering dataset --features artifacts/tiering/features.pkl --la
 ```
 
 ## Model Training (XGBoost) and Threshold Selection
-- **Model**: Gradient-boosted trees (XGBoost `binary:logistic`), AUC eval, early stopping. `tree_method` uses `gpu_hist` when `--use-gpu` (recommended on A100).
+- **Model**: Gradient-boosted trees (XGBoost `binary:logistic`), AUC eval, early stopping.
 - **Inputs**: Train/val splits from the dataset step.
 - **Threshold**: Select probability cutoff so predicted Tier-1 share ≈ target ratio (default 0.4). Evaluate precision/recall on val at this threshold.
 - **Outputs**:
@@ -88,16 +88,45 @@ python -m scripts.tiering dataset --features artifacts/tiering/features.pkl --la
   - `artifacts/tiering/metrics.json` (AUC, best iteration, thresholded precision/recall, pred ratio)
   - `artifacts/tiering/threshold.json` (chosen threshold + target ratio)
 
+### Training on Kaggle GPUs (current workflow)
+- Upload a Kaggle dataset containing `artifacts/tiering/train.pkl` and `artifacts/tiering/val.pkl` (e.g., named `tiering-artifacts`).
+- In a Kaggle notebook, attach that dataset and select a GPU runtime (A100/P100).
+- Run `kaggle_train.ipynb` (from this repo) which:
+  - Installs minimal deps (`xgboost`, `search_system`)
+  - Clones the repo to access tiering utilities
+  - Loads train/val splits, trains XGBoost with early stopping (`tree_method=hist`, `device=cuda`), selects a threshold to hit target_ratio, and saves `model.json`, `metrics.json`, `threshold.json` under `/kaggle/working/artifacts/tiering`.
+
+## Tiered BM25 Index Build (Tier-1 / Tier-2)
+- **Inputs**: `artifacts/tiering/labels.json` (doc_id -> {1|0}), `data/collection/collection.tsv`.
+- **Process**: Write subset ID files for Tier-1 and Tier-2, then run parser/indexer for each tier.
+- **Outputs**: `artifacts/bm25_T1/index` and `artifacts/bm25_T2/index` (plus postings/collection_stats/page_table/lexicon).
+
 Command:
 ```bash
-python -m scripts.tiering train \
-  --train artifacts/tiering/train.pkl \
-  --val artifacts/tiering/val.pkl \
-  --model-output artifacts/tiering/model.json \
-  --metrics-output artifacts/tiering/metrics.json \
-  --threshold-output artifacts/tiering/threshold.json \
-  --target-ratio 0.4 \
-  --use-gpu   # on GPU instances (A100)
+python -m scripts.build_tiers \
+  --labels artifacts/tiering/labels.json \
+  --dataset data/collection/collection.tsv \
+  --out-root artifacts
+```
+
+## Delta ingestion and rebuild policy
+- **Thresholds**: Tier-1 delta > 1,000 docs triggers rebuild of bm25_T1; Tier-2 delta > 100,000 triggers rebuild of bm25_T2.
+- **Inference-based routing (scripts/ingest_infer_tiered.py + systems.tiering.infer/ingest)**:
+  - Input TSV: `doc_id<TAB>text`. For each doc: compute features (static score via qtf+BM25 stats, length/idf stats/entropy), run the tiering model (`model.json`, `threshold.json`), assign tier.
+  - Append to `artifacts/tiering/delta_t1.tsv` or `delta_t2.tsv` based on predicted tier.
+  - Always rebuild small delta indexes (`artifacts/bm25_T1_delta/index`, `bm25_T2_delta/index`) so new docs are searchable; delta postings/index dirs are cleaned before each rebuild to avoid stale files.
+  - If a threshold is exceeded, rebuild the corresponding base index (bm25_T1 or bm25_T2) from original tier docs + delta, then clear the delta TSV, delta index dir, and the temporary rebuild dataset.
+- **Config knobs**:
+  - Thresholds and paths live in `utils/config.py` (e.g., `DELTA_T1_THRESHOLD=1000`, `DELTA_T2_THRESHOLD=100000`, `TIERING_QTF_PATH`, `TIERING_MODEL_PATH`, `TIERING_THRESHOLD_PATH`, `TIERING_FEATURE_NAMES_PATH`, `TIER1_IDS_PATH`, `TIER2_IDS_PATH`, `DELTA_DIR`). CLI flags override these if provided.
+- Direct routing with pre-labeled docs is not used in this flow; inference-based routing is the default.
+- **Query-time**: planned to overfetch base + delta, compute merged stats (N_total, avgdl_total, df_total), rescore candidates from both shards with BM25, and merge to top_k (RRF as fallback).
+```
+
+## Platform note (macOS)
+- XGBoost needs the OpenMP runtime (`libomp`) on macOS. Install once before running inference locally:
+  ```bash
+  brew install libomp
+  ```
 ```
 
 ## Assumptions and Design Choices

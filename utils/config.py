@@ -21,3 +21,16 @@ QRELS_DIR: str = f"{DATA_DIR}/qrels"
 QRELS_DEV_PATH: str = f"{QRELS_DIR}/qrels.dev.tsv"
 QRELS_EVAL1_PATH: str = f"{QRELS_DIR}/qrels.eval.one.tsv"
 QRELS_EVAL2_PATH: str = f"{QRELS_DIR}/qrels.eval.two.tsv"
+
+# Tiering config
+TIERING_DIR: str = f"{ARTIFACTS_DIR}/tiering"
+TIERING_QTF_PATH: str = f"{TIERING_DIR}/qtf.json"
+TIERING_LABELS_PATH: str = f"{TIERING_DIR}/labels.json"
+TIERING_MODEL_PATH: str = f"{TIERING_DIR}/model.json"
+TIERING_THRESHOLD_PATH: str = f"{TIERING_DIR}/threshold.json"
+TIERING_FEATURE_NAMES_PATH: str = f"{TIERING_DIR}/train.pkl"
+TIER1_IDS_PATH: str = f"{TIERING_DIR}/tier1_ids.txt"
+TIER2_IDS_PATH: str = f"{TIERING_DIR}/tier2_ids.txt"
+DELTA_DIR: str = TIERING_DIR
+DELTA_T1_THRESHOLD: int = 1000
+DELTA_T2_THRESHOLD: int = 100000

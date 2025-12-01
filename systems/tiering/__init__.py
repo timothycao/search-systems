@@ -13,9 +13,18 @@ from .tiering import (
     stratified_split,
     save_dataset,
     load_dataset,
-    train_xgboost_model,
-    select_threshold,
-    evaluate_at_threshold,
+)
+from .infer import (
+    compute_features as infer_compute_features,
+    build_feature_vector as infer_build_feature_vector,
+    predict_tier,
+)
+from .ingest import (
+    append_delta,
+    delta_count,
+    rebuild_delta_index,
+    rebuild_tier,
+    route_and_maybe_rebuild,
 )
 
 __all__ = [
@@ -31,7 +40,12 @@ __all__ = [
     "stratified_split",
     "save_dataset",
     "load_dataset",
-    "train_xgboost_model",
-    "select_threshold",
-    "evaluate_at_threshold",
+    "infer_compute_features",
+    "infer_build_feature_vector",
+    "predict_tier",
+    "append_delta",
+    "delta_count",
+    "rebuild_delta_index",
+    "rebuild_tier",
+    "route_and_maybe_rebuild",
 ]

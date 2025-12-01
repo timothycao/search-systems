@@ -10,19 +10,13 @@ import pickle
 import random
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Dict, Iterable, List, Tuple, Optional
+from typing import Dict, Iterable, List, Tuple
 
 from tqdm import tqdm
 
 from search_system.query.inverted_list import InvertedList
 from search_system.query.query_startup_context import QueryStartupContext
 from search_system.shared.utils import tokenize
-import numpy as np
-
-try:
-    import xgboost as xgb
-except Exception:
-    xgb = None
 
 
 @dataclass
@@ -357,105 +351,3 @@ def save_dataset(dataset: Dict[str, object], path: str) -> None:
 def load_dataset(path: str) -> Dict[str, object]:
     with open(path, "rb") as f:
         return pickle.load(f)
-
-
-def train_xgboost_model(
-    train_dataset: Dict[str, object],
-    val_dataset: Dict[str, object],
-    num_rounds: int = 500,
-    early_stopping_rounds: int = 50,
-    learning_rate: float = 0.05,
-    max_depth: int = 6,
-    subsample: float = 0.8,
-    colsample_bytree: float = 0.8,
-    use_gpu: bool = False,
-    seed: int = 42,
-) -> Tuple[Optional["xgb.Booster"], Dict[str, object]]:
-    """
-    Train an XGBoost binary classifier with early stopping. Returns (model, metrics dict).
-    """
-    if xgb is None:
-        raise ImportError("xgboost is not installed; install it to train the model.")
-
-    if not train_dataset.get("X") or not train_dataset.get("y"):
-        return None, {"error": "empty training data"}
-    if not val_dataset.get("X") or not val_dataset.get("y"):
-        return None, {"error": "empty validation data"}
-
-    feature_names = train_dataset.get("feature_names", [])
-    X_train = np.array(train_dataset["X"], dtype=np.float32)
-    y_train = np.array(train_dataset["y"], dtype=np.float32)
-    X_val = np.array(val_dataset["X"], dtype=np.float32)
-    y_val = np.array(val_dataset["y"], dtype=np.float32)
-
-    dtrain = xgb.DMatrix(X_train, label=y_train, feature_names=feature_names if feature_names else None)
-    dval = xgb.DMatrix(X_val, label=y_val, feature_names=feature_names if feature_names else None)
-
-    params = {
-        "objective": "binary:logistic",
-        "eval_metric": "auc",
-        "eta": learning_rate,
-        "max_depth": max_depth,
-        "subsample": subsample,
-        "colsample_bytree": colsample_bytree,
-        "seed": seed,
-        "tree_method": "gpu_hist" if use_gpu else "hist",
-    }
-
-    evals_result: Dict[str, List[float]] = {}
-    booster = xgb.train(
-        params,
-        dtrain,
-        num_boost_round=num_rounds,
-        evals=[(dtrain, "train"), (dval, "val")],
-        evals_result=evals_result,
-        early_stopping_rounds=early_stopping_rounds,
-        verbose_eval=False,
-    )
-
-    metrics = {
-        "best_iteration": booster.best_iteration,
-        "best_score": booster.best_score,
-        "eval_metric": params["eval_metric"],
-        "evals_result": evals_result,
-    }
-
-    return booster, metrics
-
-
-def select_threshold(probs: List[float], target_ratio: float = 0.4) -> float:
-    """
-    Choose a threshold so that approximately target_ratio of items are predicted as Tier-1.
-    """
-    if not probs:
-        return 0.5
-    sorted_probs = sorted(probs, reverse=True)
-    cutoff_idx = max(0, min(len(sorted_probs) - 1, int(len(sorted_probs) * target_ratio) - 1))
-    return sorted_probs[cutoff_idx]
-
-
-def evaluate_at_threshold(
-    probs: List[float],
-    labels: List[int],
-    threshold: float,
-) -> Dict[str, float]:
-    """
-    Compute precision/recall for Tier-1 at the given threshold.
-    """
-    if not probs or not labels:
-        return {"precision": 0.0, "recall": 0.0, "pred_ratio": 0.0}
-
-    preds = [1 if p >= threshold else 0 for p in probs]
-    tp = sum(1 for p, y in zip(preds, labels) if p == 1 and y == 1)
-    fp = sum(1 for p, y in zip(preds, labels) if p == 1 and y == 0)
-    fn = sum(1 for p, y in zip(preds, labels) if p == 0 and y == 1)
-
-    precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
-    recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
-    pred_ratio = sum(preds) / len(preds) if preds else 0.0
-
-    return {
-        "precision": precision,
-        "recall": recall,
-        "pred_ratio": pred_ratio,
-    }

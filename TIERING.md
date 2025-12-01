@@ -29,8 +29,34 @@ python -m scripts.tiering features --index artifacts/bm25/index --scores artifac
 # 6) Assemble dataset and stratified train/val splits (80/20)
 python -m scripts.tiering dataset --features artifacts/tiering/features.pkl --labels artifacts/tiering/labels.json --val-ratio 0.2 --seed 42 --train-output artifacts/tiering/train.pkl --val-output artifacts/tiering/val.pkl
 
-# 7) Train XGBoost classifier with early stopping and select threshold (use --use-gpu on A100)
-python -m scripts.tiering train --train artifacts/tiering/train.pkl --val artifacts/tiering/val.pkl --model-output artifacts/tiering/model.json --metrics-output artifacts/tiering/metrics.json --threshold-output artifacts/tiering/threshold.json --target-ratio 0.4
+# 7) Train XGBoost on Kaggle GPU using uploaded artifacts (recommended)
+# - Create a Kaggle dataset containing artifacts/tiering/train.pkl and artifacts/tiering/val.pkl (e.g., named `tiering-artifacts`)
+# - In Kaggle, attach that dataset to your notebook and select a GPU runtime (A100/P100)
+# - Upload/run kaggle_train.ipynb from this repo to produce model.json, metrics.json, threshold.json
+# - Copy those outputs into artifacts/tiering for inference
+
+# 8) Build tiered BM25 indexes (Tier-1 / Tier-2)
+python -m scripts.build_tiers \
+  --labels artifacts/tiering/labels.json \
+  --dataset data/collection/collection.tsv \
+  --out-root artifacts
+
+# 9) Ingest new docs with model inference into tiered deltas (auto-rebuild when thresholds exceeded)
+# Input TSV: doc_id<TAB>text (tier inferred via model/threshold)
+python -m scripts.ingest_infer_tiered --input data/collection/new_passages.tsv \
+  --index artifacts/bm25/index \
+  --model artifacts/tiering/model.json \
+  --threshold artifacts/tiering/threshold.json \
+  --qtf artifacts/tiering/qtf.json \
+  --feature-names artifacts/tiering/train.pkl \
+  --collection data/collection/collection.tsv \
+  --tier1-ids artifacts/tiering/tier1_ids.txt \
+  --tier2-ids artifacts/tiering/tier2_ids.txt \
+  --out-root artifacts \
+  --delta-dir artifacts/tiering
+
+# macOS note: XGBoost requires libomp. Install once before running inference locally:
+# brew install libomp
 ```
 
 ## Generated Artifacts
