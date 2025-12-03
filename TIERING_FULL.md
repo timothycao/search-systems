@@ -151,6 +151,15 @@ Computed per doc using the BM25 index and static scores:
 
 ---
 
+## HNSW Tiering (Dense)
+- **Encoder**: `sentence-transformers/msmarco-bert-base-dot-v5` (dot-product optimized).
+- **Embeddings**: Generate doc/query embeddings via `scripts/hnsw_generate_embeddings.py` (HDF5 with id/embedding). Use raw outputs; L2-normalize during scoring/indexing to match HNSW flow.
+- **Static scores for labeling**: Build a Faiss inner-product index over query embeddings; for each doc embedding, search topK=25 queries, aggregate scores (avg topK) as the dense static relevance. Normalize/rank; Tier-1 = top 40%, Tier-2 = rest. Outputs under `artifacts/tiering_dense/` (labels, static_scores, tier id lists, tier-specific embedding files).
+- **Index build**: Use the existing HNSW system to build `artifacts/hnsw_T1` and `artifacts/hnsw_T2` from tier-specific embeddings (inner product, same parameters as current HNSW).
+- **Config**: Paths/knobs in `utils/config.py` (model name, embedding paths, labels/static score paths, tier ratio, topK queries).
+
+---
+
 ## Inference Considerations
 - **Feature computation**: For new docs, compute the same features in the same order. If feasible, recompute static_score using QTF + BM25 params; otherwise approximate (expect some calibration drift).
 - **Model usage**: Load `model.json`, `threshold.json`; build feature vector aligned to `feature_names`, run XGBoost to get a probability, compare to threshold → assign Tier-1/Tier-2.

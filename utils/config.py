@@ -34,3 +34,18 @@ TIER2_IDS_PATH: str = f"{TIERING_DIR}/tier2_ids.txt"
 DELTA_DIR: str = TIERING_DIR
 DELTA_T1_THRESHOLD: int = 1000
 DELTA_T2_THRESHOLD: int = 100000
+
+# HNSW tiering config
+HNSW_MODEL_NAME: str = "sentence-transformers/msmarco-bert-base-dot-v5"
+HNSW_EMBED_DIR: str = f"{ARTIFACTS_DIR}/hnsw_embeddings"
+HNSW_DOC_EMB_PATH: str = f"{HNSW_EMBED_DIR}/doc_embeddings.h5"
+HNSW_QUERY_EMB_PATH: str = f"{HNSW_EMBED_DIR}/query_embeddings.h5"
+HNSW_TIERING_DIR: str = f"{ARTIFACTS_DIR}/tiering_dense"
+HNSW_LABELS_PATH: str = f"{HNSW_TIERING_DIR}/labels.json"
+HNSW_STATIC_SCORES_PATH: str = f"{HNSW_TIERING_DIR}/static_scores.npy"
+HNSW_TIER_RATIO: float = 0.4
+HNSW_TOPK_QUERIES: int = 25
+HNSW_T1_EMB_PATH: str = f"{HNSW_EMBED_DIR}/doc_embeddings_t1.h5"
+HNSW_T2_EMB_PATH: str = f"{HNSW_EMBED_DIR}/doc_embeddings_t2.h5"
+HNSW_T1_DIR: str = f"{ARTIFACTS_DIR}/hnsw_T1"
+HNSW_T2_DIR: str = f"{ARTIFACTS_DIR}/hnsw_T2"

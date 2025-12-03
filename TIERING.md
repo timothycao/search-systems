@@ -57,6 +57,30 @@ python -m scripts.ingest_infer_tiered --input data/collection/new_passages.tsv \
 
 # macOS note: XGBoost requires libomp. Install once before running inference locally:
 # brew install libomp
+
+# HNSW tiering (dense)
+# 10) Generate embeddings (dot) for corpus and queries
+python -m scripts.hnsw_generate_embeddings \
+  --model sentence-transformers/msmarco-bert-base-dot-v5 \
+  --docs data/collection/collection.tsv \
+  --queries data/queries/queries.all.tsv \
+  --doc-out artifacts/hnsw_embeddings/doc_embeddings.h5 \
+  --query-out artifacts/hnsw_embeddings/query_embeddings.h5
+
+# 11) Compute dense static scores via topK query similarities, label tiers, and write tier embeddings
+python -m scripts.hnsw_dense_labels \
+  --doc-emb artifacts/hnsw_embeddings/doc_embeddings.h5 \
+  --query-emb artifacts/hnsw_embeddings/query_embeddings.h5 \
+  --topk 25 \
+  --tier-ratio 0.4
+
+# 12) Build tiered HNSW indexes (Tier-1 / Tier-2) using existing HNSW system
+python -m scripts.build_hnsw_tiers \
+  --t1-emb artifacts/hnsw_embeddings/doc_embeddings_t1.h5 \
+  --t2-emb artifacts/hnsw_embeddings/doc_embeddings_t2.h5 \
+  --query-emb artifacts/hnsw_embeddings/query_embeddings.h5 \
+  --t1-out artifacts/hnsw_T1 \
+  --t2-out artifacts/hnsw_T2
 ```
 
 ## Generated Artifacts
@@ -69,7 +93,14 @@ python -m scripts.ingest_infer_tiered --input data/collection/new_passages.tsv \
 - `artifacts/tiering/model.json` — trained XGBoost classifier.
 - `artifacts/tiering/metrics.json` — training/validation metrics including thresholded precision/recall.
 - `artifacts/tiering/threshold.json` — selected Tier-1 probability threshold with target ratio metadata.
+- `artifacts/bm25_T1/index`, `artifacts/bm25_T2/index` — tiered BM25 indexes.
+- `artifacts/tiering/delta_t1.tsv`, `artifacts/tiering/delta_t2.tsv` — BM25 delta buffers (plus `bm25_T1_delta/index`, `bm25_T2_delta/index`).
+- HNSW (dense) artifacts (after running HNSW steps):
+  - `artifacts/hnsw_embeddings/doc_embeddings.h5`, `artifacts/hnsw_embeddings/query_embeddings.h5`
+  - `artifacts/tiering_dense/labels.json`, `static_scores.npy`, `tier1_ids.txt`, `tier2_ids.txt`
+  - `artifacts/hnsw_embeddings/doc_embeddings_t1.h5`, `doc_embeddings_t2.h5`
+  - `artifacts/hnsw_T1/index.faiss`, `doc_ids.npy`; `artifacts/hnsw_T2/index.faiss`, `doc_ids.npy`
 
 ## Status and Next Steps
-- **Completed**: QTF computation; static BM25 score pass over the full BM25 index; tier labeling (40% Tier-1); document feature extraction; dataset assembly with stratified train/val splits; XGBoost training with early stopping; threshold selection to hit target Tier-1 share.
-- **Remaining**: Integrate model + threshold into ingestion/build; update query-time flow to search Tier-1 first (optional Tier-2 fallback) and evaluate recall vs. baseline.
+- **Completed**: QTF computation; static BM25 score pass; BM25 tier labeling (40% Tier-1); document feature extraction; dataset assembly with stratified train/val splits; XGBoost training + threshold; tiered BM25 indexes; inference-based ingestion with deltas and rebuilds; HNSW dense tiering scaffolding (embedding generation, dense labeling via topK query sims, tiered HNSW build commands).
+- **Remaining**: Query-time merge for BM25 base+delta; mirror ingestion/delta flow for HNSW; unify tiered BM25/HNSW retrieval and neural reranking; end-to-end evaluation vs. baseline.

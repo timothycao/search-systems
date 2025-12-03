@@ -120,6 +120,14 @@ python -m scripts.build_tiers \
   - Thresholds and paths live in `utils/config.py` (e.g., `DELTA_T1_THRESHOLD=1000`, `DELTA_T2_THRESHOLD=100000`, `TIERING_QTF_PATH`, `TIERING_MODEL_PATH`, `TIERING_THRESHOLD_PATH`, `TIERING_FEATURE_NAMES_PATH`, `TIER1_IDS_PATH`, `TIER2_IDS_PATH`, `DELTA_DIR`). CLI flags override these if provided.
 - Direct routing with pre-labeled docs is not used in this flow; inference-based routing is the default.
 - **Query-time**: planned to overfetch base + delta, compute merged stats (N_total, avgdl_total, df_total), rescore candidates from both shards with BM25, and merge to top_k (RRF as fallback).
+
+## HNSW Tiering (Dense)
+- **Encoder**: `sentence-transformers/msmarco-bert-base-dot-v5` (dot-product optimized).
+- **Embeddings**: Generate doc and query embeddings (`scripts/hnsw_generate_embeddings.py`); stored as HDF5 (id, embedding). Use raw outputs (no L2) and normalize during scoring/index build to mirror HNSW flow.
+- **Static scores for labeling**: Build a Faiss inner-product index over query embeddings; for each doc embedding, search topK=25 queries, aggregate scores (avg of topK) as the dense static relevance score. Normalize/rank and assign Tier-1 (top 40%) / Tier-2.
+- **Outputs**: Dense labels (`artifacts/tiering_dense/labels.json`), static scores (`static_scores.npy`), tier1_ids/tier2_ids, and tier-specific embedding files (`doc_embeddings_t1.h5`, `doc_embeddings_t2.h5`).
+- **Index build**: Use the existing HNSW system to build `artifacts/hnsw_T1` and `artifacts/hnsw_T2` from the tier-specific embeddings (inner product, same params as current HNSW).
+
 ```
 
 ## Platform note (macOS)
