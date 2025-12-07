@@ -15,6 +15,7 @@ from search_system.query import run_query, QueryStartupContext
 from search_system.query.query import LIST_CACHE
 
 from systems.retrieval.base import RetrievalSystem, QueryResult
+from utils.config import ARTIFACTS_DIR
 
 class BM25System(RetrievalSystem):
     """BM25 retrieval based on custom inverted index implementation."""
@@ -26,9 +27,14 @@ class BM25System(RetrievalSystem):
         self.dataset_path = dataset_path
         self.subset_path = subset_path
         
-        # Output locations
-        self.postings_dir = os.path.join(artifacts_dir, self.name.lower(), "postings")
-        self.index_dir = os.path.join(artifacts_dir, self.name.lower(), "index")
+        # Output locations: if using default artifacts root, nest under bm25/; otherwise honor the provided root.
+        base_dir = (
+            os.path.join(artifacts_dir, self.name.lower())
+            if artifacts_dir == ARTIFACTS_DIR
+            else artifacts_dir
+        )
+        self.postings_dir = os.path.join(base_dir, "postings")
+        self.index_dir = os.path.join(base_dir, "index")
         
         # Runtime state
         self.context: Optional[QueryStartupContext] = None

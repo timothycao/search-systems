@@ -1,4 +1,9 @@
-"""Dynamic document tiering utilities."""
+"""Dynamic document tiering utilities.
+
+Note: Heavy dependencies (e.g., xgboost for inference) are intentionally not imported
+at package import time. Import the specific modules you need (e.g., systems.tiering.infer)
+to avoid pulling optional deps when running lightweight CLI commands.
+"""
 
 from .tiering import (
     compute_qtf,
@@ -13,18 +18,8 @@ from .tiering import (
     stratified_split,
     save_dataset,
     load_dataset,
-)
-from .infer import (
-    compute_features as infer_compute_features,
-    build_feature_vector as infer_build_feature_vector,
-    predict_tier,
-)
-from .ingest import (
-    append_delta,
-    delta_count,
-    rebuild_delta_index,
-    rebuild_tier,
-    route_and_maybe_rebuild,
+    select_threshold,
+    evaluate_at_threshold,
 )
 
 __all__ = [
@@ -40,12 +35,6 @@ __all__ = [
     "stratified_split",
     "save_dataset",
     "load_dataset",
-    "infer_compute_features",
-    "infer_build_feature_vector",
-    "predict_tier",
-    "append_delta",
-    "delta_count",
-    "rebuild_delta_index",
-    "rebuild_tier",
-    "route_and_maybe_rebuild",
+    "select_threshold",
+    "evaluate_at_threshold",
 ]

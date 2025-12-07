@@ -351,3 +351,36 @@ def save_dataset(dataset: Dict[str, object], path: str) -> None:
 def load_dataset(path: str) -> Dict[str, object]:
     with open(path, "rb") as f:
         return pickle.load(f)
+
+
+def select_threshold(probs: List[float], target_ratio: float) -> float:
+    """
+    Choose a threshold so that roughly target_ratio of examples are predicted positive.
+    """
+    if not probs:
+        return 0.5
+    sorted_probs = sorted(probs, reverse=True)
+    idx = max(0, min(len(sorted_probs) - 1, int(len(sorted_probs) * target_ratio) - 1))
+    return float(sorted_probs[idx])
+
+
+def evaluate_at_threshold(probs: List[float], labels: List[int], threshold: float) -> Dict[str, float]:
+    """
+    Compute precision/recall and predicted ratio at a given threshold.
+    """
+    if len(probs) != len(labels):
+        raise ValueError("probs and labels must have the same length")
+    preds = [1 if p >= threshold else 0 for p in probs]
+    tp = sum(1 for p, y in zip(preds, labels) if p == 1 and y == 1)
+    fp = sum(1 for p, y in zip(preds, labels) if p == 1 and y == 0)
+    fn = sum(1 for p, y in zip(preds, labels) if p == 0 and y == 1)
+    pred_pos = tp + fp
+    actual_pos = tp + fn
+
+    def safe_div(num: float, den: float) -> float:
+        return num / den if den else 0.0
+
+    precision = safe_div(tp, pred_pos)
+    recall = safe_div(tp, actual_pos)
+    pred_ratio = safe_div(pred_pos, len(labels))
+    return {"precision": precision, "recall": recall, "pred_ratio": pred_ratio}

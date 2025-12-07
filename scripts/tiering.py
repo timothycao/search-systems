@@ -95,6 +95,16 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Optional output path for normalized scores JSON.",
     )
+    tiers_parser.add_argument(
+        "--tier1-ids",
+        default=None,
+        help="Optional output path to write Tier-1 doc_ids (one per line).",
+    )
+    tiers_parser.add_argument(
+        "--tier2-ids",
+        default=None,
+        help="Optional output path to write Tier-2 doc_ids (one per line).",
+    )
 
     # features
     features_parser = subparsers.add_parser(
@@ -177,6 +187,22 @@ def main() -> None:
         with open(args.labels_output, "w", encoding="utf-8") as f:
             json.dump(labels, f)
         print(f"Saved tier labels for {len(labels)} docs to {args.labels_output}")
+
+        # Optional: write tier1/tier2 ID lists
+        if args.tier1_ids:
+            os.makedirs(os.path.dirname(args.tier1_ids) or ".", exist_ok=True)
+            with open(args.tier1_ids, "w", encoding="utf-8") as f:
+                for doc_id, lbl in labels.items():
+                    if int(lbl) == 1:
+                        f.write(f"{doc_id}\n")
+            print(f"Wrote Tier-1 IDs to {args.tier1_ids}")
+        if args.tier2_ids:
+            os.makedirs(os.path.dirname(args.tier2_ids) or ".", exist_ok=True)
+            with open(args.tier2_ids, "w", encoding="utf-8") as f:
+                for doc_id, lbl in labels.items():
+                    if int(lbl) == 0:
+                        f.write(f"{doc_id}\n")
+            print(f"Wrote Tier-2 IDs to {args.tier2_ids}")
 
         if args.normalized_output:
             normalized = normalize_scores(scores)
