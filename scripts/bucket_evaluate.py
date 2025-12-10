@@ -28,7 +28,7 @@ from utils.config import (
 )
 
 # Systems must match evaluate.py
-SYSTEMS: List[str] = ["bm25", "hnsw", "rrf", "lsf", "biencoder"]
+SYSTEMS: List[str] = ["bm25", "hnsw", "bm25_tiered", "rrf", "lsf", "biencoder"]
 
 # Qrels mapping must match evaluate.py
 QRELS = {

@@ -7,6 +7,8 @@ import argparse
 from pathlib import Path
 from typing import List, Tuple
 
+from tqdm import tqdm
+
 from systems.tiering.infer import (
     compute_features,
     build_feature_vector,
@@ -17,14 +19,11 @@ from systems.tiering.infer import (
 from systems.tiering.ingest import route_and_maybe_rebuild
 from search_system.query.query_startup_context import QueryStartupContext
 from utils.config import (
-    DATASET_PATH,
     ARTIFACTS_DIR,
     TIERING_QTF_PATH,
     TIERING_MODEL_PATH,
     TIERING_THRESHOLD_PATH,
     TIERING_FEATURE_NAMES_PATH,
-    TIER1_IDS_PATH,
-    TIER2_IDS_PATH,
     DELTA_DIR,
 )
 
@@ -51,11 +50,11 @@ def main() -> None:
     parser.add_argument("--qtf", default=TIERING_QTF_PATH)
     parser.add_argument("--feature-names", default=TIERING_FEATURE_NAMES_PATH, help="Pickle containing feature_names")
     parser.add_argument("--index", default=f"{ARTIFACTS_DIR}/bm25/index", help="Path to BM25 index (for stats/lexicon)")
-    parser.add_argument("--collection", default=DATASET_PATH, help="Full collection.tsv")
-    parser.add_argument("--tier1-ids", default=TIER1_IDS_PATH)
-    parser.add_argument("--tier2-ids", default=TIER2_IDS_PATH)
     parser.add_argument("--out-root", default=ARTIFACTS_DIR)
-    parser.add_argument("--delta-dir", default=DELTA_DIR)
+    parser.add_argument("--base-t1", default=f"{DELTA_DIR}/base_T1.tsv", help="Doc list for base Tier-1 (doc_id\\ttext)")
+    parser.add_argument("--base-t2", default=f"{DELTA_DIR}/base_T2.tsv", help="Doc list for base Tier-2 (doc_id\\ttext)")
+    parser.add_argument("--delta-t1", default=f"{DELTA_DIR}/delta_T1.tsv", help="Doc list for delta Tier-1 (doc_id\\ttext)")
+    parser.add_argument("--delta-t2", default=f"{DELTA_DIR}/delta_T2.tsv", help="Doc list for delta Tier-2 (doc_id\\ttext)")
     args = parser.parse_args()
 
     docs = load_input(Path(args.input))
@@ -65,7 +64,7 @@ def main() -> None:
     ctx = QueryStartupContext(args.index)
 
     routed = []
-    for doc_id, text in docs:
+    for doc_id, text in tqdm(docs, desc="Inferring tiers", unit="doc"):
         feats = compute_features(text, qtf, ctx)
         fv = build_feature_vector(feats, feature_names)
         tier, prob = predict_tier(Path(args.model), Path(args.threshold), fv, feature_names)
@@ -73,11 +72,11 @@ def main() -> None:
 
     route_and_maybe_rebuild(
         docs=routed,
-        collection_path=Path(args.collection),
-        subset_t1=Path(args.tier1_ids),
-        subset_t2=Path(args.tier2_ids),
+        base_t1=Path(args.base_t1),
+        base_t2=Path(args.base_t2),
+        delta_t1=Path(args.delta_t1),
+        delta_t2=Path(args.delta_t2),
         out_root=Path(args.out_root),
-        delta_dir=Path(args.delta_dir),
     )
 
 

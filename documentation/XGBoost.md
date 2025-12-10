@@ -32,12 +32,12 @@ XGBoost (Extreme Gradient Boosting) is a gradient-boosted decision tree library 
 - Target Tier-1 share: 40% (threshold chosen to match this on validation)
 
 ## Results (from artifacts/tiering/metrics.json and threshold.json)
-- Best iteration: 64 (early stopping selected this)
-- Validation AUC: ~0.999992 (best_score)
-- Threshold: 0.4058 (probability cutoff to get ~40% Tier-1)
-- Validation precision @ threshold: ~0.9977
-- Validation recall @ threshold: ~0.9977
-- Validation predicted Tier-1 ratio: ~0.4000 (matches target_ratio=0.4)
+- Best iteration: 26 (early stopping selected this)
+- Validation AUC (best_score): 0.9999925303286296
+- Threshold: 0.40405648946762085 (probability cutoff to target ~40% Tier-1)
+- Validation precision @ threshold: 0.997725440923075
+- Validation recall @ threshold: 0.997725440923075
+- Validation predicted Tier-1 ratio: 0.399999838397289 (matches target_ratio=0.4)
 
 ## Interpretation of the Results
 - **Near-perfect AUC**: The model almost perfectly ranks Tier-1 above Tier-2 on validation. This is expected because labels come from a deterministic static BM25×QTF score, and that score (and its log) is included as a feature.
