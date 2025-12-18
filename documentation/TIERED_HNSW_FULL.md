@@ -28,6 +28,7 @@ This document captures the detailed rationale, design choices, and math for the 
 
 ## 4) Tiered HNSW Indexes (Work ingestion)
 - We do not build tiered indexes from train labels. Instead, we infer tiers on the work split and build base/delta indexes from those predictions, mirroring the BM25 flow.
+- Work is split deterministically: `collection_work_hnsw_init.tsv` (work minus 500k) and `collection_work_hnsw_delta.tsv` (500k).
 - Base indexes: `hnsw_T1`, `hnsw_T2` (built from the large work-init ingest after rollover).
 - Delta indexes: `hnsw_T1_delta`, `hnsw_T2_delta` (built from the smaller work-delta ingest; remain live unless thresholds are exceeded).
 - Base/delta membership files (doc_id and embeddings) are maintained to support rebuilds.
@@ -40,7 +41,7 @@ This document captures the detailed rationale, design choices, and math for the 
 ## 6) Query-Time Merge
 - Search base and delta HNSW separately; overfetch (e.g., 2× topK) from each.
 - Merge by dot-product score (same embedding model makes scores directly comparable); optionally use RRF if needed for stability.
-- Return final topK per query; multiprocessing runner (`run_tiered_hnsw_multi.py`) will mirror the BM25 tiered runner.
+- Return final topK per query; multiprocessing runner (`run_tiered_hnsw_multi.py`) mirrors the BM25 tiered runner.
 
 ## 7) Evaluation
 - Evaluate tiered HNSW vs non-tiered HNSW on the working/eval queries (MRR@10, Recall@100, MAP, NDCG@10, NDCG@100).

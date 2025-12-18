@@ -21,6 +21,7 @@ from .tiering import (
     select_threshold,
     evaluate_at_threshold,
 )
+from .infer import predict_tier, build_feature_vector, load_feature_names
 
 __all__ = [
     "compute_qtf",
@@ -37,4 +38,7 @@ __all__ = [
     "load_dataset",
     "select_threshold",
     "evaluate_at_threshold",
+    "predict_tier",
+    "build_feature_vector",
+    "load_feature_names",
 ]

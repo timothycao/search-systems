@@ -50,3 +50,77 @@ This document tracks the HNSW tiering workflow. All artifacts are suffixed with 
     --val-ratio 0.2 --seed 42
   ```
 - Output: HNSW feature dict and train/val datasets for model training.
+
+## 4) Train-side model (HNSW)
+- Train XGBoost on `train_hnsw.pkl` / `val_hnsw.pkl` (GPU-enabled notebook):
+  - Notebook: `kaggle_train_xgboost_hnsw.ipynb`
+  - Inputs: upload `train_hnsw.pkl`, `val_hnsw.pkl` (from step 3)
+  - Outputs: `model_hnsw.json`, `threshold_hnsw.json`, `metrics_hnsw.json` under `artifacts/tiering_dense/`
+
+## 5) Work split into init/delta (HNSW)
+- Deterministic split of work TSV (500k docs to delta):
+  ```bash
+  python -m scripts.split_work_hnsw_init_delta \
+    --work data/collection/collection_work.tsv \
+    --delta-size 500000 --seed 42 \
+    --init-out data/collection/collection_work_hnsw_init.tsv \
+    --delta-out data/collection/collection_work_hnsw_delta.tsv
+  ```
+- Output: work-init and work-delta TSVs for HNSW ingestion mirroring BM25 flow.
+
+## 6) Ingest work splits (inference; build base/delta HNSW)
+- Ingest init (expected to roll into base):
+  ```bash
+  python -m scripts.ingest_infer_tiered_hnsw \
+    --input data/collection/collection_work_hnsw_init.tsv \
+    --work-emb data/collection/collection_work_hnsw.h5 \
+    --query-emb data/collection/query_embeddings_remapped.h5 \
+    --model artifacts/tiering_dense/model_hnsw.json \
+    --threshold artifacts/tiering_dense/threshold_hnsw.json \
+    --feature-names artifacts/tiering_dense/train_hnsw.pkl \
+    --topk 25 --batch-size 4096 --faiss-threads 8 \
+    --base-t1 artifacts/tiering_dense/base_T1_hnsw.tsv \
+    --base-t2 artifacts/tiering_dense/base_T2_hnsw.tsv \
+    --delta-t1 artifacts/tiering_dense/delta_T1_hnsw.tsv \
+    --delta-t2 artifacts/tiering_dense/delta_T2_hnsw.tsv \
+    --index-t1 artifacts/hnsw_T1 \
+    --index-t2 artifacts/hnsw_T2 \
+    --index-t1-delta artifacts/hnsw_T1_delta \
+    --index-t2-delta artifacts/hnsw_T2_delta \
+    --m 24 --ef-construction 200
+  ```
+- Ingest delta (expected to remain in deltas):
+  ```bash
+  python -m scripts.ingest_infer_tiered_hnsw \
+    --input data/collection/collection_work_hnsw_delta.tsv \
+    --work-emb data/collection/collection_work_hnsw.h5 \
+    --query-emb data/collection/query_embeddings_remapped.h5 \
+    --model artifacts/tiering_dense/model_hnsw.json \
+    --threshold artifacts/tiering_dense/threshold_hnsw.json \
+    --feature-names artifacts/tiering_dense/train_hnsw.pkl \
+    --topk 25 --batch-size 4096 --faiss-threads 8 \
+    --base-t1 artifacts/tiering_dense/base_T1_hnsw.tsv \
+    --base-t2 artifacts/tiering_dense/base_T2_hnsw.tsv \
+    --delta-t1 artifacts/tiering_dense/delta_T1_hnsw.tsv \
+    --delta-t2 artifacts/tiering_dense/delta_T2_hnsw.tsv \
+    --index-t1 artifacts/hnsw_T1 \
+    --index-t2 artifacts/hnsw_T2 \
+    --index-t1-delta artifacts/hnsw_T1_delta \
+    --index-t2-delta artifacts/hnsw_T2_delta \
+    --m 24 --ef-construction 200
+  ```
+- Behavior: routes docs to delta TSVs + indexes; if thresholds exceeded (T1>400k, T2>1M), deltas are merged into base and bases rebuilt; otherwise deltas are rebuilt for queryability.
+
+## 7) Tiered HNSW Retrieval (base + delta, multiprocessing)
+- Run tiered HNSW retrieval with merge over base+delta:
+  ```bash
+  python -m scripts.run_tiered_hnsw_multi_norescore \
+    --qrels dev \
+    --save hnsw_dev_working_FT_multi_norescore_m24_ef200_es200_of2 \
+    --topk 100 \
+    --overfetch-factor 2 \
+    --ef-search 200 \
+    --workers 4 \
+    --query-emb data/collection/query_embeddings_remapped.h5
+  ```
+- Searches `hnsw_T1`, `hnsw_T2`, `hnsw_T1_delta`, `hnsw_T2_delta`, overfetches per index, merges by dot-product, outputs topK in the same run format as `run.py`.

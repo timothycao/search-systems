@@ -100,10 +100,25 @@ def main() -> None:
     parser.add_argument("--qrels", choices=list(DATASETS.keys()), required=False)
     parser.add_argument("--targets", nargs="+", required=False)
     parser.add_argument("--track", choices=["time", "memory"], required=False)
+    # Optional override for HNSW query embeddings
+    parser.add_argument("--queries-embeddings-path", required=False, help="Override query embeddings path for HNSW")
+    # Optional override for HNSW doc embeddings and artifacts dir
+    parser.add_argument("--subset-embeddings-path", required=False, help="Override subset embeddings path for HNSW")
+    parser.add_argument("--artifacts-dir", required=False, help="Override artifacts dir for HNSW")
     args = parser.parse_args()
 
     # Initialize system
     system_cls, init_args = SYSTEM_CONFIG[args.system]
+    # If user provided a custom query embeddings path for HNSW, override the default
+    if args.system == "hnsw" and args.queries_embeddings_path:
+        # init_args = (subset_embeddings_path, queries_embeddings_path, artifacts_dir)
+        subset_emb = args.subset_embeddings_path or init_args[0]
+        artifacts_dir = args.artifacts_dir or init_args[2]
+        init_args = (subset_emb, args.queries_embeddings_path, artifacts_dir)
+    elif args.system == "hnsw":
+        subset_emb = args.subset_embeddings_path or init_args[0]
+        artifacts_dir = args.artifacts_dir or init_args[2]
+        init_args = (subset_emb, init_args[1], artifacts_dir)
     system = system_cls(*init_args)
 
     # Retrieval systems
