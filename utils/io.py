@@ -64,6 +64,21 @@ def load_run(file_path: str) -> Dict[str, Dict[str, float]]:
 
     return dict(run)
 
+def load_run_topk(file_path: str, k: int) -> Dict[str, List[str]]:
+    """
+    Load run file into {query_id: [doc_id, ...]} keeping rank order, truncated to top-k.
+    """
+    run: Dict[str, List[str]] = defaultdict(list)
+    with open(file_path, "r", encoding="utf-8") as file:
+        for line in file:
+            if not line.strip(): continue
+
+            query_id, doc_id, rank_str, _ = line.strip().split("\t")
+            rank = int(rank_str)
+            if rank <= k: run[query_id].append(doc_id)
+    
+    return dict(run)
+
 def load_passages_from_subset(dataset_path: str, subset_path: str) -> Dict[str, str]:
     """
     Load passage texts for a subset of passage IDs.
