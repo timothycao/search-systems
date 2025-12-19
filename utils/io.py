@@ -5,7 +5,18 @@ Includes helpers for reading queries, qrels, and runs, and writing ranked output
 
 import os
 from collections import defaultdict
-from typing import Dict, List, Tuple
+from typing import Set, Dict, List, Tuple
+
+def load_docids(file_path: str) -> Set[str]:
+    docids: Set[str] = set()
+    with open(file_path, "r", encoding="utf-8") as file:
+        for line in file:
+            if not line.strip(): continue
+            
+            docid, _ = line.strip().split("\t", 1)
+            docids.add(docid)
+    
+    return docids
 
 def load_queries(file_path: str) -> Dict[str, str]:
     """Load queries file into {query_id: query_text}."""
