@@ -15,6 +15,8 @@ SUBSET_EMBEDDINGS_PATH: str = f"{COLLECTION_DIR}/msmarco_passages_embeddings_sub
 QUERIES_DIR: str = f"{DATA_DIR}/queries"
 QUERIES_DEV_PATH: str = f"{QUERIES_DIR}/queries.dev.tsv"
 QUERIES_EVAL_PATH: str = f"{QUERIES_DIR}/queries.eval.tsv"
+QUERIES_TRAIN_PATH: str = f"{QUERIES_DIR}/queries.train.tsv"
+QUERIES_TRAIN_FILTERED_PATH: str = f"{QUERIES_DIR}/queries.train.filtered.tsv"
 QUERIES_EMBEDDINGS_PATH: str = f"{QUERIES_DIR}/msmarco_queries_dev_eval_embeddings.h5"
 
 # Qrels (relevance labels)
@@ -22,6 +24,8 @@ QRELS_DIR: str = f"{DATA_DIR}/qrels"
 QRELS_DEV_PATH: str = f"{QRELS_DIR}/qrels.dev.tsv"
 QRELS_EVAL1_PATH: str = f"{QRELS_DIR}/qrels.eval.one.tsv"
 QRELS_EVAL2_PATH: str = f"{QRELS_DIR}/qrels.eval.two.tsv"
+QRELS_TRAIN_PATH: str = f"{QRELS_DIR}/qrels.train.tsv"
+QRELS_TRAIN_FILTERED_PATH: str = f"{QRELS_DIR}/qrels.train.filtered.tsv"
 
 # Tiering config
 TIERING_DIR: str = f"{ARTIFACTS_DIR}/tiering"

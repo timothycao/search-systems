@@ -5,6 +5,7 @@ Usage:
   python -m scripts.run_tiered_multi \
     --system bm25 \
     --qrels <dev | eval1 | eval2> \
+    [--t1-only] \
     --save <output_run_file> \
     --topk 100 \
     [--overfetch-factor 2] \
@@ -40,8 +41,10 @@ from utils.config import (
     QRELS_DEV_PATH,
     QRELS_EVAL1_PATH,
     QRELS_EVAL2_PATH,
+    QRELS_TRAIN_FILTERED_PATH,
     QUERIES_DEV_PATH,
     QUERIES_EVAL_PATH,
+    QUERIES_TRAIN_FILTERED_PATH,
 )
 
 # Dataset registry
@@ -49,6 +52,7 @@ DATASETS: Dict[str, Dict[str, str]] = {
     "dev": {"qrels": QRELS_DEV_PATH, "queries": QUERIES_DEV_PATH},
     "eval1": {"qrels": QRELS_EVAL1_PATH, "queries": QUERIES_EVAL_PATH},
     "eval2": {"qrels": QRELS_EVAL2_PATH, "queries": QUERIES_EVAL_PATH},
+    "train_filtered": {"qrels": QRELS_TRAIN_FILTERED_PATH, "queries": QUERIES_TRAIN_FILTERED_PATH},
 }
 
 
@@ -88,6 +92,8 @@ TOP_K = 0
 
 def init_worker(global_index_dir: str, tier_dirs: List[str], fetch_k: int, top_k: int):
     global GLOBAL_STATS, GLOBAL_LEXICON, IDX_CTXS, FETCH_K, TOP_K
+    LIST_CACHE.cache.clear()
+    LIST_CACHE.capacity = 1000000
     stats = load_json(os.path.join(global_index_dir, "collection_stats.json"))
     GLOBAL_STATS = {
         "num_docs": stats.get("num_docs") or stats.get("total_docs"),
@@ -141,7 +147,7 @@ def process_query(query: Tuple[str, str]) -> Tuple[str, List[Tuple[int, float]]]
     candidates: Dict[int, float] = {}
 
     for ctx in IDX_CTXS:
-        LIST_CACHE.cache.clear()
+        # LIST_CACHE.cache.clear()
         with redirect_stdout(StringIO()):
             hits = run_query(
                 startup_context=ctx.ctx,
@@ -181,6 +187,7 @@ def main() -> None:
     parser = ArgumentParser(description="Run tiered retrieval (base+delta) with merge/rescore using multiprocessing.")
     parser.add_argument("--system", choices=["bm25", "hnsw"], required=True)
     parser.add_argument("--qrels", choices=list(DATASETS.keys()), required=True)
+    parser.add_argument("--t1-only", action="store_true")
     parser.add_argument("--save", required=True)
     parser.add_argument("--topk", type=int, default=100, help="Final topK to output")
     parser.add_argument("--overfetch-factor", type=int, default=2, help="Overfetch multiplier before merge/rescore")
@@ -194,12 +201,18 @@ def main() -> None:
     queries: List[Tuple[str, str]] = get_queries_subset(qrels_path, query_path)
 
     if args.system == "bm25":
-        tier_dirs = [
-            os.path.join(ARTIFACTS_DIR, "bm25_T1"),
-            os.path.join(ARTIFACTS_DIR, "bm25_T2"),
-            os.path.join(ARTIFACTS_DIR, "bm25_T1_delta"),
-            os.path.join(ARTIFACTS_DIR, "bm25_T2_delta"),
-        ]
+        if args.t1_only:
+            tier_dirs = [
+                os.path.join(ARTIFACTS_DIR, "bm25_T1"),
+                os.path.join(ARTIFACTS_DIR, "bm25_T1_delta"),
+            ]
+        else:
+            tier_dirs = [
+                os.path.join(ARTIFACTS_DIR, "bm25_T1"),
+                os.path.join(ARTIFACTS_DIR, "bm25_T2"),
+                os.path.join(ARTIFACTS_DIR, "bm25_T1_delta"),
+                os.path.join(ARTIFACTS_DIR, "bm25_T2_delta"),
+            ]
         global_index_dir = os.path.join(ARTIFACTS_DIR, "bm25", "index")
         results = track_performance(
             bm25_search_and_merge_mp,
