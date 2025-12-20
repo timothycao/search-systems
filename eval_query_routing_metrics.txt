@@ -1,0 +1,8 @@
+Eval2:
+
+T30: [Router] Counts: y=0 -> 26, y=1 -> 28, total routed: 54
+T40: [Router] Counts: y=0 -> 26, y=1 -> 28, total routed: 54
+T50: [Router] Counts: y=0 -> 23, y=1 -> 31, total routed: 54
+T60: [Router] Counts: y=0 -> 23, y=1 -> 31, total routed: 54
+T70: [Router] Counts: y=0 -> 18, y=1 -> 36, total routed: 54
+T80: [Router] Counts: y=0 -> 13, y=1 -> 41, total routed: 54
