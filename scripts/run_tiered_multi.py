@@ -144,6 +144,8 @@ FETCH_K = 0
 TOP_K = 0
 
 ROUTER_MODEL = None
+ROUTER_THRESHOLD = None
+ROUTER_COUNTS = None
 
 
 def build_ctxs(tier_dirs: List[str]) -> List[BM25IndexCtx]:
@@ -162,11 +164,12 @@ def init_worker(
     fetch_k: int,
     top_k: int,
     router_dir: Optional[str],
+    counts_dict,
 ):
     global GLOBAL_STATS, GLOBAL_LEXICON
     global IDX_CTXS_T1, IDX_CTXS_FULL
     global FETCH_K, TOP_K
-    global ROUTER_MODEL
+    global ROUTER_MODEL, ROUTER_THRESHOLD, ROUTER_COUNTS
     
     LIST_CACHE.cache.clear()
     LIST_CACHE.capacity = 1000000
@@ -187,9 +190,17 @@ def init_worker(
     TOP_K = top_k
 
     ROUTER_MODEL = None
+    ROUTER_THRESHOLD = None
+    ROUTER_COUNTS = counts_dict
     if router_dir:
         model_path = os.path.join(router_dir, "model.joblib")
         ROUTER_MODEL = joblib.load(model_path)
+        thr_path = os.path.join(router_dir, "threshold.json")
+        if os.path.isfile(thr_path):
+            try:
+                ROUTER_THRESHOLD = float(json.load(open(thr_path, "r")).get("threshold"))
+            except Exception:
+                ROUTER_THRESHOLD = None
 
 
 def rescore_bm25(doc_id: int, query_tokens: List[str], index_ctx: BM25IndexCtx) -> float:
@@ -230,14 +241,20 @@ def process_query(query: Tuple[str, str]) -> Tuple[str, List[Tuple[int, float]]]
     route_y = 1
     if ROUTER_MODEL is not None:
         x = compute_query_features_vec(qtext)
-        route_y = int(ROUTER_MODEL.predict([x])[0])
+        if ROUTER_THRESHOLD is not None:
+            proba = float(ROUTER_MODEL.predict_proba([x])[0][1])
+            route_y = 1 if proba >= ROUTER_THRESHOLD else 0
+        else:
+            route_y = int(ROUTER_MODEL.predict([x])[0])
+        if ROUTER_COUNTS is not None:
+            ROUTER_COUNTS[route_y] = ROUTER_COUNTS.get(route_y, 0) + 1
 
     ctxs = IDX_CTXS_FULL
     if ROUTER_MODEL is not None and route_y == 0:
         ctxs = IDX_CTXS_T1
 
     for ctx in ctxs:
-        LIST_CACHE.cache.clear() # cache is only keyed by term
+        LIST_CACHE.cache.clear()
         with redirect_stdout(StringIO()):
             hits = run_query(
                 startup_context=ctx.ctx,
@@ -266,13 +283,17 @@ def bm25_search_and_merge_mp(
     router_dir: Optional[str],
 ) -> List[Tuple[str, List[Tuple[int, float]]]]:
     fetch_k = overfetch_factor * top_k
-    with mp.Pool(
-        processes=workers,
-        initializer=init_worker,
-        initargs=(global_index_dir, tier_dirs_t1, tier_dirs_full, fetch_k, top_k, router_dir),
-    ) as pool:
-        results = list(tqdm(pool.imap(process_query, queries), total=len(queries), desc="Queries"))
-    return results
+    with mp.Manager() as mgr:
+        counts_dict = mgr.dict({0: 0, 1: 0})
+        with mp.Pool(
+            processes=workers,
+            initializer=init_worker,
+            initargs=(global_index_dir, tier_dirs_t1, tier_dirs_full, fetch_k, top_k, router_dir, counts_dict),
+        ) as pool:
+            results = list(tqdm(pool.imap(process_query, queries), total=len(queries), desc="Queries"))
+        # materialize counts before manager closes
+        routed_counts = {0: counts_dict.get(0, 0), 1: counts_dict.get(1, 0)}
+    return results, routed_counts
 
 
 def main() -> None:
@@ -321,6 +342,14 @@ def main() -> None:
         router_dir,
         track=args.track,
     )
+
+    routed_counts = None
+    if isinstance(results, tuple) and len(results) == 2:
+        results, routed_counts = results
+
+    if router_dir and routed_counts is not None:
+        total = routed_counts.get(0, 0) + routed_counts.get(1, 0)
+        print(f"[Router] Counts: y=0 -> {routed_counts.get(0,0)}, y=1 -> {routed_counts.get(1,0)}, total routed: {total}")
 
     save_path = os.path.join(RUNS_DIR, "bm25_tiered", args.save)
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
