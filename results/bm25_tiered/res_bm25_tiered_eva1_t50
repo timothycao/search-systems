@@ -1,0 +1,36 @@
+===================== OVERALL PERFORMANCE =====================
+
+MRR@10      : 0.7759
+Recall@100  : 0.3563
+NDCG@10     : 0.4154
+NDCG@100    : 0.4154
+
+Metrics used: MRR@10, Recall@100, NDCG@10, NDCG@100
+
+===================== QUERY LENGTH STATISTICS =====================
+
+Total Queries: 43
+Short Queries (1–3 tokens):  6
+Medium Queries (4–6 tokens): 26
+Long Queries (7+ tokens):    11
+
+================= PERFORMANCE BY QUERY LENGTH =================
+
+
+--- SHORT QUERIES ---
+MRR@10      : 0.8611
+Recall@100  : 0.4554
+NDCG@10     : 0.4334
+NDCG@100    : 0.4930
+
+--- MEDIUM QUERIES ---
+MRR@10      : 0.7153
+Recall@100  : 0.3403
+NDCG@10     : 0.3655
+NDCG@100    : 0.3865
+
+--- LONG QUERIES ---
+MRR@10      : 0.8727
+Recall@100  : 0.3401
+NDCG@10     : 0.5235
+NDCG@100    : 0.4413

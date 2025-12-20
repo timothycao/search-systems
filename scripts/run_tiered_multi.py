@@ -237,6 +237,7 @@ def process_query(query: Tuple[str, str]) -> Tuple[str, List[Tuple[int, float]]]
         ctxs = IDX_CTXS_T1
 
     for ctx in ctxs:
+        LIST_CACHE.cache.clear() # cache is only keyed by term
         with redirect_stdout(StringIO()):
             hits = run_query(
                 startup_context=ctx.ctx,
