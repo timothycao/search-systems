@@ -2,6 +2,7 @@
 DATA_DIR: str = "data"              # input datasets
 ARTIFACTS_DIR: str = "artifacts"    # build outputs
 RUNS_DIR: str = "runs"              # evaluation outputs
+MODELS_DIR: str = "models"          # model training outputs (weights)
 
 # Collection (documents/passages)
 COLLECTION_DIR: str = f"{DATA_DIR}/collection"
@@ -18,6 +19,7 @@ QUERIES_EVAL_PATH: str = f"{QUERIES_DIR}/queries.eval.tsv"
 QUERIES_TRAIN_PATH: str = f"{QUERIES_DIR}/queries.train.tsv"
 QUERIES_TRAIN_FILTERED_PATH: str = f"{QUERIES_DIR}/queries.train.filtered.tsv"
 QUERIES_EMBEDDINGS_PATH: str = f"{QUERIES_DIR}/msmarco_queries_dev_eval_embeddings.h5"
+QUERY_ROUTING_MODELS_DIR: str = f"{MODELS_DIR}/query_routing"
 
 # Qrels (relevance labels)
 QRELS_DIR: str = f"{DATA_DIR}/qrels"
