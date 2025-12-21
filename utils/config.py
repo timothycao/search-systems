@@ -3,6 +3,8 @@ DATA_DIR: str = "data"              # input datasets
 ARTIFACTS_DIR: str = "artifacts"    # build outputs
 RUNS_DIR: str = "runs"              # evaluation outputs
 MODELS_DIR: str = "models"          # model training outputs (weights)
+RESULTS_DIR: str = "results"
+PLOTS_DIR: str = "plots"
 
 # Collection (documents/passages)
 COLLECTION_DIR: str = f"{DATA_DIR}/collection"
@@ -57,3 +59,7 @@ HNSW_T1_EMB_PATH: str = f"{ARTIFACTS_DIR}/tiering_dense/doc_embeddings_t1_hnsw.h
 HNSW_T2_EMB_PATH: str = f"{ARTIFACTS_DIR}/tiering_dense/doc_embeddings_t2_hnsw.h5"
 HNSW_T1_DIR: str = f"{ARTIFACTS_DIR}/hnsw_T1"
 HNSW_T2_DIR: str = f"{ARTIFACTS_DIR}/hnsw_T2"
+
+# Results config
+BM25_TIERED_RESULTS_DIR: str = f"{RESULTS_DIR}/bm25_tiered"
+BM25_TIERED_PLOTS_DIR: str = f"{PLOTS_DIR}/bm25_tiered"
