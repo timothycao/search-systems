@@ -1,0 +1,13 @@
+{
+  "feature_names": [
+    "q_len_terms",
+    "q_len_chars",
+    "q_unique_terms",
+    "q_frac_unique",
+    "q_avg_term_len",
+    "idf_max",
+    "idf_min",
+    "idf_mean",
+    "idf_std"
+  ]
+}
