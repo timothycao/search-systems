@@ -2,7 +2,7 @@
 
 MRR@10      : 0.2273
 Recall@100  : 0.5266
-MAP         : 0.2231
+MAP         : 0.2204
 
 Metrics used: MRR@10, Recall@100, MAP
 

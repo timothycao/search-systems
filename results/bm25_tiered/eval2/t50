@@ -1,9 +1,9 @@
 ===================== OVERALL PERFORMANCE =====================
 
 MRR@10      : 0.7206
-Recall@100  : 0.3611
-NDCG@10     : 0.4402
-NDCG@100    : 0.3941
+Recall@100  : 0.3501
+NDCG@10     : 0.4323
+NDCG@100    : 0.3887
 
 Metrics used: MRR@10, Recall@100, NDCG@10, NDCG@100
 

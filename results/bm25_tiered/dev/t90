@@ -1,8 +1,8 @@
 ===================== OVERALL PERFORMANCE =====================
 
-MRR@10      : 0.2317
-Recall@100  : 0.5387
-MAP         : 0.2287
+MRR@10      : 0.2505
+Recall@100  : 0.6078
+MAP         : 0.2449
 
 Metrics used: MRR@10, Recall@100, MAP
 
@@ -17,16 +17,16 @@ Long Queries (7+ tokens):    343
 
 
 --- SHORT QUERIES ---
-MRR@10      : 0.2872
-Recall@100  : 0.6703
-MAP         : 0.2861
+MRR@10      : 0.2523
+Recall@100  : 0.6103
+MAP         : 0.2504
 
 --- MEDIUM QUERIES ---
-MRR@10      : 0.2532
-Recall@100  : 0.5542
-MAP         : 0.2476
+MRR@10      : 0.2704
+Recall@100  : 0.6102
+MAP         : 0.2617
 
 --- LONG QUERIES ---
-MRR@10      : 0.2072
-Recall@100  : 0.4767
-MAP         : 0.2055
+MRR@10      : 0.2199
+Recall@100  : 0.6030
+MAP         : 0.2173

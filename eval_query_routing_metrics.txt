@@ -1,17 +1,39 @@
 Eval2:
-T10: [Router] Counts: y=0 -> 24, y=1 -> 30, total routed: 54
-T20: [Router] Counts: y=0 -> 23, y=1 -> 31, total routed: 54
-T30: [Router] Counts: y=0 -> 26, y=1 -> 28, total routed: 54
+T00: [Router] Counts: y=0 -> 33, y=1 -> 21, total routed: 54
+T10: [Router] Counts: y=0 -> 31, y=1 -> 23, total routed: 54
+T20: [Router] Counts: y=0 -> 29, y=1 -> 25, total routed: 54
+T30: [Router] Counts: y=0 -> 28, y=1 -> 26, total routed: 54
 T40: [Router] Counts: y=0 -> 26, y=1 -> 28, total routed: 54
 T50: [Router] Counts: y=0 -> 23, y=1 -> 31, total routed: 54
-T60: [Router] Counts: y=0 -> 23, y=1 -> 31, total routed: 54
+T60: [Router] Counts: y=0 -> 21, y=1 -> 33, total routed: 54
 T70: [Router] Counts: y=0 -> 18, y=1 -> 36, total routed: 54
 T80: [Router] Counts: y=0 -> 13, y=1 -> 41, total routed: 54
 T90: [Router] Counts: y=0 -> 6, y=1 -> 48, total routed: 54
 
 
 Eval1:
-T10: [Router] Counts: y=0 -> 16, y=1 -> 27, total routed: 43
+T00: [Router] Counts: y=0 -> 22, y=1 -> 21, total routed: 43
+T10: [Router] Counts: y=0 -> 20, y=1 -> 23, total routed: 43
 T20: [Router] Counts: y=0 -> 19, y=1 -> 24, total routed: 43
-
+T30: [Router] Counts: y=0 -> 17, y=1 -> 26, total routed: 43
+T40: [Router] Counts: y=0 -> 15, y=1 -> 28, total routed: 43
+T50: [Router] Counts: y=0 -> 13, y=1 -> 30, total routed: 43
+T60: [Router] Counts: y=0 -> 11, y=1 -> 32, total routed: 43
+T70: [Router] Counts: y=0 -> 10, y=1 -> 33, total routed: 43
+T80: [Router] Counts: y=0 -> 8, y=1 -> 35, total routed: 43
 T90: [Router] Counts: y=0 -> 6, y=1 -> 37, total routed: 43
+
+
+
+
+Dev:
+T00: [Router] Counts: y=0 -> 548, y=1 -> 452, total routed: 1000
+T10: [Router] Counts: y=0 -> 516, y=1 -> 484, total routed: 1000
+T20: [Router] Counts: y=0 -> 477, y=1 -> 523, total routed: 1000
+T30: [Router] Counts: y=0 -> 445, y=1 -> 555, total routed: 1000
+T40: [Router] Counts: y=0 -> 399, y=1 -> 601, total routed: 1000
+T50: [Router] Counts: y=0 -> 359, y=1 -> 641, total routed: 1000
+T60: [Router] Counts: y=0 -> 315, y=1 -> 685, total routed: 1000
+T70: [Router] Counts: y=0 -> 282, y=1 -> 718, total routed: 1000
+T80: [Router] Counts: y=0 -> 244, y=1 -> 756, total routed: 1000
+T90: [Router] Counts: y=0 -> 206, y=1 -> 794, total routed: 1000
