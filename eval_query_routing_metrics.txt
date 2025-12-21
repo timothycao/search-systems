@@ -1,8 +1,17 @@
 Eval2:
-
+T10: [Router] Counts: y=0 -> 24, y=1 -> 30, total routed: 54
+T20: [Router] Counts: y=0 -> 23, y=1 -> 31, total routed: 54
 T30: [Router] Counts: y=0 -> 26, y=1 -> 28, total routed: 54
 T40: [Router] Counts: y=0 -> 26, y=1 -> 28, total routed: 54
 T50: [Router] Counts: y=0 -> 23, y=1 -> 31, total routed: 54
 T60: [Router] Counts: y=0 -> 23, y=1 -> 31, total routed: 54
 T70: [Router] Counts: y=0 -> 18, y=1 -> 36, total routed: 54
 T80: [Router] Counts: y=0 -> 13, y=1 -> 41, total routed: 54
+T90: [Router] Counts: y=0 -> 6, y=1 -> 48, total routed: 54
+
+
+Eval1:
+T10: [Router] Counts: y=0 -> 16, y=1 -> 27, total routed: 43
+T20: [Router] Counts: y=0 -> 19, y=1 -> 24, total routed: 43
+
+T90: [Router] Counts: y=0 -> 6, y=1 -> 37, total routed: 43
