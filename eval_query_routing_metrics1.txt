@@ -1,2 +1,4 @@
-[Router] Counts: y=0 -> 524, y=1 -> 476, total routed: 1000
-[Router] Counts: y=0 -> 518, y=1 -> 482, total routed: 1000
+Dev:
+T00: [Router] Counts: y=0 -> 554, y=1 -> 446, total routed: 1000
+T30: [Router] Counts: y=0 -> 524, y=1 -> 476, total routed: 1000
+T40: [Router] Counts: y=0 -> 518, y=1 -> 482, total routed: 1000
