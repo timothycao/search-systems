@@ -24,8 +24,6 @@ T80: [Router] Counts: y=0 -> 8, y=1 -> 35, total routed: 43
 T90: [Router] Counts: y=0 -> 6, y=1 -> 37, total routed: 43
 
 
-
-
 Dev:
 T00: [Router] Counts: y=0 -> 548, y=1 -> 452, total routed: 1000
 T10: [Router] Counts: y=0 -> 516, y=1 -> 484, total routed: 1000

@@ -124,3 +124,12 @@ This document tracks the HNSW tiering workflow. All artifacts are suffixed with 
     --query-emb data/collection/query_embeddings_remapped.h5
   ```
 - Searches `hnsw_T1`, `hnsw_T2`, `hnsw_T1_delta`, `hnsw_T2_delta`, overfetches per index, merges by dot-product, outputs topK in the same run format as `run.py`.
+
+## 8) Run evaluation 
+```bash
+python -m scripts.bucket_evaluate \
+  --system hnsw_tiered \
+  --qrels dev \
+  --run hnsw_dev_working_FT_multi_norescore_m24_ef200_es200_of2 \
+  --save res_hnsw_dev_working_FT_multi_norescore_m24_ef200_es200_of2
+```
